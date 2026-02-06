@@ -1,0 +1,5 @@
+{
+  "name": "Gerador de Parecer da Controladoria",
+  "description": "Sistema de geração de pareceres da controladoria com exportação automática para DOCX, processamento client-side e interface moderna.",
+  "requestFramePermissions": []
+}
