@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 import { 
   FileText, 
   Save, 
@@ -458,33 +458,29 @@ export default function App() {
             const mimeType = file.type;
 
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-            const prompt = `
-                Analise esta imagem que é uma CAPA DE PROCESSO / PROTOCOLO.
-                Extraia EXATAMENTE as seguintes informações em JSON:
-                1. "protocolo": O valor que aparece após "Número do protocolo" (ex: 2026.01.07.0001).
-                2. "interessado": O nome que aparece após "Interessado" (ex: ASSESI ASSESSORIA E SISTEMAS).
-                
-                Retorne APENAS o JSON puro no formato:
-                {
-                    "protocolo": "string",
-                    "interessado": "string"
-                }
-            `;
-
+            
             try {
                 const response = await ai.models.generateContent({
                     model: 'gemini-3-pro-preview',
                     contents: {
                       parts: [
-                        { text: prompt },
+                        { text: "Analise esta imagem que é uma CAPA DE PROCESSO / PROTOCOLO. Extraia o protocolo e o interessado." },
                         { inlineData: { mimeType: mimeType, data: base64Content } }
                       ]
+                    },
+                    config: {
+                      responseMimeType: 'application/json',
+                      responseSchema: {
+                        type: Type.OBJECT,
+                        properties: {
+                          protocolo: { type: Type.STRING },
+                          interessado: { type: Type.STRING }
+                        }
+                      }
                     }
                 });
 
-                const text = response.text || '';
-                const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
-                const aiData = JSON.parse(jsonStr);
+                const aiData = JSON.parse(response.text || '{}');
 
                 const interestedName = aiData.interessado || "";
                 const matchingCreditor = creditors.find(c => 
